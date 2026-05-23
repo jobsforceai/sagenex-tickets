@@ -1,0 +1,216 @@
+<section class="page-head">
+  <h1>Chatbot Integrations</h1>
+  <p>Configure chatbot widgets for Sagenex platforms. Once configured, users can embed the script to load a floating chat widget.</p>
+</section>
+
+<% if (availablePlatforms.length > 0) { %>
+  <section class="form-panel">
+    <h2>Create Chatbot Embed Script</h2>
+    <form method="post" action="/admin/chatbots" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label for="platform" class="form-label">Platform</label>
+        <select name="platform" id="platform" class="form-select" required>
+          <option value="" disabled selected>Select Platform...</option>
+          <% availablePlatforms.forEach(p => { %>
+            <option value="<%= p.key %>"><%= p.label %> (<%= p.url %>)</option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="title" class="form-label">Chat Title</label>
+        <input name="title" id="title" class="form-control" placeholder="e.g. SGXMeta Help Desk" required value="Support Desk Chatbot">
+      </div>
+      <div class="col-md-3">
+        <label for="themeColor" class="form-label">Theme Color</label>
+        <div class="d-flex gap-2 align-items-center">
+          <input type="color" name="themeColor" id="themeColor" class="form-control form-control-color" style="width: 45px; height: 32px; padding: 2px;" value="#0f766e" required>
+          <input type="text" id="themeColorHex" class="form-control" style="font-family: monospace; font-size: 12px; height: 32px;" value="#0f766e" oninput="document.getElementById('themeColor').value = this.value">
+        </div>
+      </div>
+      <div class="col-md-12">
+        <label for="welcomeMessage" class="form-label">Welcome Message</label>
+        <textarea name="welcomeMessage" id="welcomeMessage" class="form-control" placeholder="Hello! How can we assist you with our platform today?" required rows="2">Hello! How can we assist you with our platform today?</textarea>
+      </div>
+      <div class="col-12 mt-2">
+        <button class="btn-primary">Generate Embed Script</button>
+      </div>
+    </form>
+  </section>
+<% } else { %>
+  <section class="form-panel">
+    <div class="text-muted p-2">All available platforms have already been configured. You can edit their configurations below.</div>
+  </section>
+<% } %>
+
+<section class="form-panel">
+  <h2>Active Integrations</h2>
+  <% if (chatbots.length === 0) { %>
+    <div class="empty-state text-center py-4">No active chatbot integrations configured yet. Select a platform above to get started.</div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Title</th>
+            <th>Welcome Message</th>
+            <th>Theme Color</th>
+            <th>Embed Code</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% chatbots.forEach(c => { %>
+            <tr>
+              <td style="font-weight: 700;"><%= c.platform %></td>
+              <td><%= c.title %></td>
+              <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><%= c.welcomeMessage %></td>
+              <td>
+                <div class="d-flex align-items-center gap-1">
+                  <span style="display: inline-block; width: 14px; height: 14px; background: <%= c.themeColor %>; border: 1px solid rgba(0,0,0,0.15); border-radius: 2px;"></span>
+                  <code style="font-size: 11px;"><%= c.themeColor %></code>
+                </div>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <code class="embed-code-block" style="font-size: 10px; background: #f1f5f9; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; display: inline-block; cursor: pointer; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Click to copy script tag" onclick="copyEmbedScript(this, '<%= c.platform %>')">
+                    &lt;script src="/embed/chatbot.js" platform="<%= c.platform %>"&gt;&lt;/script&gt;
+                  </code>
+                  <button class="btn-mini btn-secondary py-1" onclick="copyEmbedScript(this, '<%= c.platform %>')">Copy</button>
+                </div>
+              </td>
+              <td>
+                <span class="state-pill <%= c.isActive ? 'active' : 'disabled' %>">
+                  <%= c.isActive ? 'Active' : 'Disabled' %>
+                </span>
+              </td>
+              <td>
+                <div class="action-row">
+                  <button class="btn-mini btn-secondary" onclick="openEditDrawer('<%= c._id %>', '<%= c.platform %>', '<%= c.title %>', '<%= c.welcomeMessage.replace(/'/g, '\\\'').replace(/\n/g, '\\n') %>', '<%= c.themeColor %>')">Edit</button>
+                  <form method="post" action="/admin/chatbots/<%= c._id %>/toggle" style="margin:0;">
+                    <button class="btn-mini"><%= c.isActive ? 'Disable' : 'Enable' %></button>
+                  </form>
+                  <form method="post" action="/admin/chatbots/<%= c._id %>/delete" style="margin:0;" onsubmit="return confirm('Are you sure you want to delete this integration?')">
+                    <button class="btn-mini danger">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<!-- Edit Drawer Overlay -->
+<div id="editDrawerOverlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); z-index: 1050; opacity: 0; transition: opacity 0.25s;" onclick="closeEditDrawer()"></div>
+
+<!-- Edit Drawer panel -->
+<div id="editDrawer" style="display: none; position: fixed; right: -420px; top: 0; bottom: 0; width: 400px; background: #fff; border-left: 1px solid #cbd5e1; box-shadow: -8px 0 24px rgba(0,0,0,0.12); z-index: 1051; padding: 20px; transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1); flex-direction: column;">
+  <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+    <h3 style="margin: 0; font-size: 16px; font-weight: 700;">Edit Integration: <span id="editPlatformLabel"></span></h3>
+    <button type="button" class="btn-close" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;" onclick="closeEditDrawer()">&times;</button>
+  </div>
+  <form id="editForm" method="post" class="d-flex flex-column gap-3 flex-grow-1">
+    <div>
+      <label for="editTitle" class="form-label">Chat Title</label>
+      <input name="title" id="editTitle" class="form-control" required>
+    </div>
+    <div>
+      <label for="editThemeColor" class="form-label">Theme Color</label>
+      <div class="d-flex gap-2 align-items-center">
+        <input type="color" name="themeColor" id="editThemeColor" class="form-control form-control-color" style="width: 45px; height: 32px; padding: 2px;" required oninput="document.getElementById('editThemeColorHex').value = this.value">
+        <input type="text" id="editThemeColorHex" class="form-control" style="font-family: monospace; font-size: 12px; height: 32px;" oninput="document.getElementById('editThemeColor').value = this.value">
+      </div>
+    </div>
+    <div>
+      <label for="editWelcomeMessage" class="form-label">Welcome Message</label>
+      <textarea name="welcomeMessage" id="editWelcomeMessage" class="form-control" required rows="4"></textarea>
+    </div>
+    <div class="mt-auto border-top pt-3 d-flex gap-2">
+      <button type="button" class="btn-secondary w-50" onclick="closeEditDrawer()">Cancel</button>
+      <button type="submit" class="btn-primary w-50">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Link standard color pickers with hex text inputs for new form
+  document.addEventListener('DOMContentLoaded', () => {
+    const themeColorPicker = document.getElementById('themeColor');
+    const themeColorHexInput = document.getElementById('themeColorHex');
+    if (themeColorPicker && themeColorHexInput) {
+      themeColorPicker.addEventListener('input', (e) => {
+        themeColorHexInput.value = e.target.value;
+      });
+    }
+  });
+
+  // Open Edit Drawer
+  function openEditDrawer(id, platform, title, welcomeMessage, themeColor) {
+    document.getElementById('editPlatformLabel').innerText = platform;
+    document.getElementById('editForm').action = `/admin/chatbots/${id}`;
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editWelcomeMessage').value = welcomeMessage;
+    document.getElementById('editThemeColor').value = themeColor;
+    document.getElementById('editThemeColorHex').value = themeColor;
+
+    const overlay = document.getElementById('editDrawerOverlay');
+    const drawer = document.getElementById('editDrawer');
+
+    overlay.style.display = 'block';
+    drawer.style.display = 'flex';
+
+    // Animation frames
+    setTimeout(() => {
+      overlay.style.opacity = '1';
+      drawer.style.right = '0';
+    }, 10);
+  }
+
+  // Close Edit Drawer
+  function closeEditDrawer() {
+    const overlay = document.getElementById('editDrawerOverlay');
+    const drawer = document.getElementById('editDrawer');
+
+    overlay.style.opacity = '0';
+    drawer.style.right = '-420px';
+
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      drawer.style.display = 'none';
+    }, 250);
+  }
+
+  // Click-to-copy embed tag snippet with full protocol/host URL
+  function copyEmbedScript(element, platform) {
+    const scriptSrc = `${window.location.origin}/embed/chatbot.js`;
+    const scriptTag = `<script src="${scriptSrc}" platform="${platform}"><\/script>`;
+
+    navigator.clipboard.writeText(scriptTag).then(() => {
+      const originalText = element.tagName === 'BUTTON' ? element.innerText : 'Copy';
+      
+      if (element.tagName === 'BUTTON') {
+        element.innerText = 'Copied!';
+        element.classList.remove('btn-secondary');
+        element.classList.add('btn-success');
+      } else {
+        const prevText = element.innerText;
+        element.innerText = 'Script tag copied!';
+        setTimeout(() => element.innerText = prevText, 1500);
+      }
+
+      setTimeout(() => {
+        if (element.tagName === 'BUTTON') {
+          element.innerText = originalText;
+          element.classList.remove('btn-success');
+          element.classList.add('btn-secondary');
+        }
+      }, 1500);
+    }).catch(err => {
+      alert('Unable to copy embed code. Please copy manually.');
+    });
+  }
+</script>

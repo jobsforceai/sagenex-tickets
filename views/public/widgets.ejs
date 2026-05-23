@@ -1,0 +1,79 @@
+<section class="page-head">
+  <h1>Chatbot Embed Widgets</h1>
+  <p>Easily embed a Sagenex support chatbot into your platform or reports. Copy the platform-specific script tag below and paste it before the closing <code>&lt;/body&gt;</code> tag of your HTML pages.</p>
+</section>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="form-panel h-100">
+      <h2>How it works</h2>
+      <ol class="compact-list" style="padding-left: 20px; font-size: 13px;">
+        <li style="margin-bottom: 12px;"><strong>Select a Platform:</strong> Find your platform from the active integrations list.</li>
+        <li style="margin-bottom: 12px;"><strong>Copy script:</strong> Click "Copy Embed Code" to get the `<script>` tag.</li>
+        <li style="margin-bottom: 12px;"><strong>Embed:</strong> Paste the script tag in your website's HTML file or dashboard reports.</li>
+        <li style="margin-bottom: 12px;"><strong>Interact:</strong> A sleek support bubble will float in the bottom-right corner allowing users to raise and track complaints directly!</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <section class="form-panel h-100">
+      <h2>Active Embed Scripts</h2>
+      <% if (chatbots.length === 0) { %>
+        <div class="empty-state text-center py-4">
+          No chatbot widgets are currently configured by the administrator. Please check back later.
+        </div>
+      <% } else { %>
+        <div class="d-flex flex-column gap-3">
+          <% chatbots.forEach(c => { %>
+            <div class="card p-3" style="border: 1px solid #cfd6df; background: #fff; border-radius: 6px;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 style="margin:0; font-size: 14px; font-weight:700; color: #1f3a5f;"><%= c.platform %> Desk</h3>
+                <span class="state-pill active" style="font-size: 9px;">Ready to embed</span>
+              </div>
+              <p class="text-muted small mb-2"><strong>Chat Title:</strong> <%= c.title %> | <strong>Welcome Message:</strong> <%= c.welcomeMessage %></p>
+              
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <code class="embed-code-block" style="flex: 1; font-size: 11px; background: #f8fafc; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; display: inline-block; cursor: pointer; white-space: nowrap; overflow-x: auto;" title="Click to copy script tag" onclick="copyWidgetScript(this, '<%= c.platform %>')">
+                  &lt;script src="/embed/chatbot.js" platform="<%= c.platform %>"&gt;&lt;/script&gt;
+                </code>
+                <button class="btn-mini btn-secondary" onclick="copyWidgetScript(this, '<%= c.platform %>')">Copy Code</button>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+  </div>
+</div>
+
+<script>
+  function copyWidgetScript(element, platform) {
+    const scriptSrc = `${window.location.origin}/embed/chatbot.js`;
+    const scriptTag = `<script src="${scriptSrc}" platform="${platform}"><\/script>`;
+
+    navigator.clipboard.writeText(scriptTag).then(() => {
+      const originalText = element.tagName === 'BUTTON' ? element.innerText : 'Copy Code';
+
+      if (element.tagName === 'BUTTON') {
+        element.innerText = 'Copied!';
+        element.classList.remove('btn-secondary');
+        element.classList.add('btn-success');
+      } else {
+        const prevText = element.innerText;
+        element.innerText = 'Code copied!';
+        setTimeout(() => element.innerText = prevText, 1500);
+      }
+
+      setTimeout(() => {
+        if (element.tagName === 'BUTTON') {
+          element.innerText = originalText;
+          element.classList.remove('btn-success');
+          element.classList.add('btn-secondary');
+        }
+      }, 1500);
+    }).catch(err => {
+      alert('Unable to copy. Please copy the text manually.');
+    });
+  }
+</script>

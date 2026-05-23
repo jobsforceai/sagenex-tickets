@@ -1,11 +1,13 @@
 import Ticket from '../models/Ticket.js';
 import TicketActivity from '../models/TicketActivity.js';
 import User from '../models/User.js';
+import ChatbotConfig from '../models/ChatbotConfig.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { addNote, assignTicket, updateTicketPriority, updateTicketStatus } from '../services/ticketService.js';
 import { platforms } from '../utils/platforms.js';
 import crypto from 'crypto';
 import { sendMail } from '../services/emailService.js';
+
 
 function buildTicketFilter(query) {
   const filter = {};
@@ -219,3 +221,67 @@ export const exportTickets = asyncHandler(async (req, res) => {
   });
   res.end();
 });
+
+// Chatbot configurations list
+export const listChatbots = asyncHandler(async (req, res) => {
+  const chatbots = await ChatbotConfig.find().populate('createdBy', 'name').sort('-createdAt');
+  const configuredPlatforms = chatbots.map((c) => c.platform);
+  const availablePlatforms = platforms.filter((p) => !configuredPlatforms.includes(p.key));
+  res.render('admin/chatbot', { title: 'Chatbot Integrations', chatbots, availablePlatforms, platforms });
+});
+
+// Create new chatbot configuration
+export const createChatbot = asyncHandler(async (req, res) => {
+  const { platform, title, welcomeMessage, themeColor } = req.body;
+  await ChatbotConfig.create({
+    platform,
+    title,
+    welcomeMessage,
+    themeColor,
+    createdBy: req.user._id
+  });
+  req.session.flash = { type: 'success', message: 'Chatbot configuration created successfully.' };
+  res.redirect('/admin/chatbots');
+});
+
+// Update chatbot configuration
+export const updateChatbot = asyncHandler(async (req, res) => {
+  const { title, welcomeMessage, themeColor } = req.body;
+  const chatbot = await ChatbotConfig.findById(req.params.id);
+  if (!chatbot) {
+    req.session.flash = { type: 'danger', message: 'Chatbot configuration not found.' };
+    return res.redirect('/admin/chatbots');
+  }
+  chatbot.title = title;
+  chatbot.welcomeMessage = welcomeMessage;
+  chatbot.themeColor = themeColor;
+  await chatbot.save();
+  req.session.flash = { type: 'success', message: 'Chatbot configuration updated successfully.' };
+  res.redirect('/admin/chatbots');
+});
+
+// Toggle chatbot configuration active state
+export const toggleChatbot = asyncHandler(async (req, res) => {
+  const chatbot = await ChatbotConfig.findById(req.params.id);
+  if (!chatbot) {
+    req.session.flash = { type: 'danger', message: 'Chatbot configuration not found.' };
+    return res.redirect('/admin/chatbots');
+  }
+  chatbot.isActive = !chatbot.isActive;
+  await chatbot.save();
+  req.session.flash = { type: 'success', message: `Chatbot integration ${chatbot.isActive ? 'enabled' : 'disabled'}.` };
+  res.redirect('/admin/chatbots');
+});
+
+// Delete chatbot configuration
+export const deleteChatbot = asyncHandler(async (req, res) => {
+  const chatbot = await ChatbotConfig.findById(req.params.id);
+  if (!chatbot) {
+    req.session.flash = { type: 'danger', message: 'Chatbot configuration not found.' };
+    return res.redirect('/admin/chatbots');
+  }
+  await ChatbotConfig.deleteOne({ _id: chatbot._id });
+  req.session.flash = { type: 'success', message: 'Chatbot configuration deleted.' };
+  res.redirect('/admin/chatbots');
+});
+

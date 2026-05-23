@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { home, printTicket, reopenTicket, showComplaint, submitComplaint, trackTicket, verifySgxUser } from '../controllers/publicController.js';
+import { home, printTicket, reopenTicket, showComplaint, submitComplaint, trackTicket, verifySgxUser, showWidgets } from '../controllers/publicController.js';
 import { upload } from '../middleware/uploadMiddleware.js';
 import { validate } from '../middleware/validationMiddleware.js';
 import { complaintLimiter, trackingLimiter } from '../middleware/rateLimiters.js';
@@ -9,7 +9,9 @@ import { platformKeys } from '../utils/platforms.js';
 const router = Router();
 
 router.get('/', home);
+router.get('/widgets', showWidgets);
 router.get('/complaint', complaintLimiter, showComplaint);
+
 router.post('/complaint/verify-user', complaintLimiter, [body('externalUserId').trim().notEmpty().withMessage('SGX user ID is required')], verifySgxUser);
 router.post(
   '/complaint',

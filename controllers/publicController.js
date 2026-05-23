@@ -1,5 +1,6 @@
 import Ticket from '../models/Ticket.js';
 import TicketActivity from '../models/TicketActivity.js';
+import ChatbotConfig from '../models/ChatbotConfig.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { createTicket, updateTicketStatus } from '../services/ticketService.js';
 import { validateExternalUser } from '../services/externalUserService.js';
@@ -7,6 +8,11 @@ import { platforms } from '../utils/platforms.js';
 
 export const home = (req, res) => res.render('public/home', { title: 'Sagenex Ticketing System' });
 export const showComplaint = (req, res) => res.render('public/complaint', { title: 'Raise Complaint', platforms });
+export const showWidgets = asyncHandler(async (req, res) => {
+  const chatbots = await ChatbotConfig.find({ isActive: true }).sort('platform');
+  res.render('public/widgets', { title: 'Embed Chatbot Widgets', chatbots });
+});
+
 
 export const submitComplaint = asyncHandler(async (req, res) => {
   const ticket = await createTicket(req.body, req.files, req.user);
