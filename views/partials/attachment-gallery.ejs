@@ -1,0 +1,44 @@
+<% if (ticket.attachments && ticket.attachments.length) { %>
+  <div class="attachment-gallery">
+    <div class="section-title">Attachments</div>
+    <% 
+      const groups = [
+        { key: 'complainant', label: 'Complainant Uploads' },
+        { key: 'admin', label: 'Admin Uploads' },
+        { key: 'developer', label: 'Developer Proof / Updates' }
+      ];
+    %>
+    <% groups.forEach(function(group) { 
+      const files = ticket.attachments.filter(function(file) {
+        const source = file.source || (file.uploadedBy?.role === 'admin' ? 'admin' : file.uploadedBy?.role === 'developer' ? 'developer' : 'complainant');
+        return source === group.key;
+      });
+      if (!files.length) return;
+    %>
+      <section class="evidence-group">
+        <h3><%= group.label %> <span><%= files.length %></span></h3>
+        <div class="evidence-grid">
+          <% files.forEach(function(file) { 
+            const href = file.url || ('/' + String(file.path || '').replace(/\\/g, '/'));
+            const name = file.originalName || file.filename || 'Attachment';
+            const isImage = /\.(jpg|jpeg|png|webp)$/i.test(name) || /^image\//.test(file.mimetype || '');
+            const uploadedBy = file.uploadedByName || file.uploadedBy?.name || (group.key === 'complainant' ? ticket.name : 'System');
+            const role = file.uploadedByRole || file.uploadedBy?.role || (group.key === 'complainant' ? 'complainant' : group.key);
+            const uploadedAt = file.createdAt ? new Date(file.createdAt).toLocaleString() : '';
+          %>
+            <a class="evidence-card evidence-<%= group.key %>" href="<%= href %>" target="_blank" rel="noopener">
+              <span class="evidence-source"><%= role %></span>
+              <% if (isImage) { %>
+                <img src="<%= href %>" alt="<%= name %>" loading="lazy">
+              <% } else { %>
+                <span class="evidence-file"><%= String(name).split('.').pop().toUpperCase() %></span>
+              <% } %>
+              <span class="evidence-name" title="<%= name %>"><%= name %></span>
+              <span class="evidence-meta"><%= uploadedBy %><% if (uploadedAt) { %> · <%= uploadedAt %><% } %></span>
+            </a>
+          <% }) %>
+        </div>
+      </section>
+    <% }) %>
+  </div>
+<% } %>

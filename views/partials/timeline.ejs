@@ -1,0 +1,30 @@
+<% if (!activities || !activities.length) { %>
+  <div class="empty-state">No activity recorded yet.</div>
+<% } else { %>
+  <ol class="audit-timeline">
+    <% activities.forEach(function(activity){ 
+      const label = String(activity.actionType || 'updated').replace(/_/g, ' ');
+      const actor = activity.performedByName || activity.performedBy?.name || 'System';
+      const role = activity.performedBy?.role || '';
+    %>
+      <li>
+        <div class="audit-dot"></div>
+        <article class="audit-card">
+          <header>
+            <span class="audit-action"><%= label %></span>
+            <time><%= activity.createdAt.toLocaleString() %></time>
+          </header>
+          <% if (activity.fromStatus || activity.toStatus || activity.metadata?.fromPriority || activity.metadata?.toPriority) { %>
+            <div class="audit-transition">
+              <% if (activity.fromStatus || activity.metadata?.fromPriority) { %><span><%= activity.fromStatus || activity.metadata.fromPriority %></span><% } %>
+              <% if ((activity.fromStatus && activity.toStatus) || (activity.metadata?.fromPriority && activity.metadata?.toPriority)) { %><b>→</b><% } %>
+              <% if (activity.toStatus || activity.metadata?.toPriority) { %><span><%= activity.toStatus || activity.metadata.toPriority %></span><% } %>
+            </div>
+          <% } %>
+          <% if (activity.remarks) { %><p><%= activity.remarks %></p><% } %>
+          <footer>By <b><%= actor %></b><% if (role) { %> · <%= role %><% } %></footer>
+        </article>
+      </li>
+    <% }) %>
+  </ol>
+<% } %>

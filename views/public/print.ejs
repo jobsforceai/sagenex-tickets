@@ -1,0 +1,10 @@
+<!doctype html><html><head><title><%= ticket.ticketId %></title><link rel="stylesheet" href="/css/app.css"></head><body class="print-page">
+<h1>Sagenex Complaint Copy</h1>
+<table class="print-table">
+  <tr><th>Ticket ID</th><td><%= ticket.ticketId %></td><th>Status</th><td><%= ticket.status %></td></tr>
+  <tr><th>Platform</th><td><%= ticket.platform %></td><th>User Type</th><td><%= ticket.complainantType === 'sgx_member' ? 'SGX Member' : 'Public' %></td></tr>
+  <tr><th>Name</th><td><%= ticket.name %></td><th>Email</th><td><%= ticket.email %></td></tr>
+  <tr><th>Title</th><td colspan="3"><%= ticket.title %></td></tr>
+  <tr><th>Description</th><td colspan="3"><%= ticket.description %></td></tr>
+</table>
+<script>window.print()</script></body></html>

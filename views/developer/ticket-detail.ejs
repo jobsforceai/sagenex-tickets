@@ -1,0 +1,69 @@
+<nav class="breadcrumb-bar"><a href="/developer/dashboard">Developer</a><span>/</span><a href="/developer/tickets">Assigned Tickets</a><span>/</span><b><%= ticket.ticketId %></b></nav>
+<div class="issue-layout">
+  <section class="issue-main">
+    <div class="issue-header">
+      <div>
+        <span class="issue-key"><%= ticket.ticketId %></span>
+        <h1><%= ticket.title %></h1>
+      </div>
+      <span class="status-pill"><%= ticket.status %></span>
+    </div>
+
+    <div class="issue-meta-grid">
+      <div><span>Platform</span><b><%= ticket.platform %></b></div>
+      <div><span>Priority</span><b><%= ticket.priority %></b></div>
+      <div><span>Complainant</span><b><%= ticket.name %></b></div>
+      <div><span>User Type</span><b><%= ticket.complainantType === 'sgx_member' ? 'SGX Member' : 'Public' %></b></div>
+    </div>
+
+    <section class="issue-section">
+      <h2>Description</h2>
+      <p><%= ticket.description %></p>
+    </section>
+
+    <%- include('../partials/attachment-gallery', { ticket }) %>
+
+    <section class="issue-section">
+      <h2>Timeline</h2>
+      <%- include('../partials/timeline', { activities }) %>
+    </section>
+  </section>
+
+  <aside class="workflow-panel">
+    <div class="workflow-head">
+      <h2>Update Progress</h2>
+      <span>Developer workspace</span>
+    </div>
+    <form method="post" action="/developer/tickets/<%= ticket._id %>" enctype="multipart/form-data" class="jira-form" id="developerUpdateForm">
+      <input type="hidden" name="status" id="workflowStatus" value="">
+
+      <div class="workflow-block">
+        <label>Transition</label>
+        <div class="transition-grid">
+          <button type="button" class="transition-btn" data-status="In Progress">Start Progress</button>
+          <button type="button" class="transition-btn success" data-status="Resolved">Submit for Admin Approval</button>
+          <button type="button" class="transition-btn muted" data-status="">No Status Change</button>
+        </div>
+        <div class="selected-transition" id="selectedTransition">No status change selected</div>
+      </div>
+
+      <div class="workflow-block">
+        <label>Progress Note<textarea name="progressNote" rows="4" placeholder="What changed, what was checked, and what remains pending."></textarea></label>
+      </div>
+
+      <div class="workflow-block">
+        <label>Resolution Note<textarea name="resolutionNote" rows="4" placeholder="What was fixed and what proof should admin review before approval."></textarea></label>
+      </div>
+
+      <div class="workflow-block">
+        <label>Proof / Screenshot<input type="file" name="proof" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx"></label>
+      </div>
+
+      <div class="workflow-block">
+        <label>Remarks<input name="remarks" placeholder="Short audit remark"></label>
+      </div>
+
+      <button class="btn-primary workflow-submit">Save Update</button>
+    </form>
+  </aside>
+</div>

@@ -1,0 +1,26 @@
+<nav class="breadcrumb-bar"><a href="/admin/dashboard">Admin</a><span>/</span><a href="/admin/tickets">Tickets</a><span>/</span><b><%= ticket.ticketId %></b></nav>
+<section class="record-card">
+  <div class="record-head"><h1><%= ticket.ticketId %> - <%= ticket.title %></h1><a class="btn-mini" href="/tickets/<%= ticket.ticketId %>/print">Print</a></div>
+  <div class="detail-grid"><span>Status</span><b><%= ticket.status %></b><span>Priority</span><b><%= ticket.priority %></b><span>Platform</span><b><%= ticket.platform %></b><span>User Type</span><b><%= ticket.complainantType === 'sgx_member' ? 'SGX Member ' + (ticket.externalUserId || '') : 'Public' %></b><span>Complainant</span><b><%= ticket.name %> / <%= ticket.email %></b><span>Assigned</span><b><%= ticket.assignedTo?.name || '-' %></b></div>
+  <p><%= ticket.description %></p>
+  <%- include('../partials/attachment-gallery', { ticket }) %>
+</section>
+<section class="form-panel">
+  <h2>Admin Action</h2>
+  <% if (ticket.status === 'Pending Approval') { %>
+    <div class="approval-banner">
+      <b>Admin approval required</b>
+      <span>Developer has submitted the issue for approval. Review notes and proof before resolving or closing.</span>
+    </div>
+  <% } %>
+  <form method="post" action="/admin/tickets/<%= ticket._id %>" class="grid-form">
+    <label>Status<select name="status"><option value="">No change</option><% ['Under Review','Escalated','Assigned','In Progress','Pending Approval','Resolved','Closed','Reopened'].forEach(s => { %><option><%= s %></option><% }) %></select></label>
+    <label>Priority <span class="label-note">current: <%= ticket.priority %></span><select name="priority"><option value="">No change</option><% ['Low','Medium','High','Critical'].forEach(p => { %><option value="<%= p %>"><%= p %></option><% }) %></select></label>
+    <label>Assign Developer<select name="assignedTo"><option value="">No change</option><% developers.forEach(d => { %><option value="<%= d._id %>"><%= d.name %></option><% }) %></select></label>
+    <label class="span-2">Internal Note<textarea name="internalNote" rows="2"></textarea></label>
+    <label class="span-2">Resolution Note<textarea name="resolutionNote" rows="2"></textarea></label>
+    <label class="span-2">Remarks<input name="remarks"></label>
+    <button class="btn-primary">Save Action</button>
+  </form>
+</section>
+<section class="record-card"><h2>Timeline</h2><%- include('../partials/timeline', { activities }) %></section>

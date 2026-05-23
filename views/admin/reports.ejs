@@ -1,0 +1,8 @@
+<section class="page-head"><h1>Reports</h1><p>Aggregated complaint workload and operational summary.</p></section>
+<div class="chart-grid">
+  <%- include('../partials/pie-chart', { title: 'Status Summary', data: charts.byStatus }) %>
+  <%- include('../partials/pie-chart', { title: 'Priority Summary', data: charts.byPriority }) %>
+  <%- include('../partials/pie-chart', { title: 'Platform Summary', data: charts.byPlatform }) %>
+  <%- include('../partials/pie-chart', { title: 'User Type Summary', data: charts.byUserType }) %>
+  <%- include('../partials/pie-chart', { title: 'Developer Workload', data: charts.byDeveloper }) %>
+</div>

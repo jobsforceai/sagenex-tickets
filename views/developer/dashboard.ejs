@@ -1,0 +1,7 @@
+<section class="page-head"><h1>Developer Dashboard</h1><p>Tickets assigned to you only.</p></section>
+<div class="stats-row"><div>Assigned<b><%= stats.assigned %></b></div><div>In Progress<b><%= stats.progress %></b></div><div>Submitted / Resolved<b><%= stats.resolved %></b></div></div>
+<div class="chart-grid two">
+  <%- include('../partials/pie-chart', { title: 'My Tickets by Status', data: charts.byStatus }) %>
+  <%- include('../partials/pie-chart', { title: 'My Tickets by Priority', data: charts.byPriority }) %>
+</div>
+<section class="record-card"><h2>Pending Tasks</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Title</th><th>Status</th><th></th></tr></thead><tbody><% recent.forEach(t => { %><tr><td class="mono"><%= t.ticketId %></td><td><%= t.title %></td><td><%= t.status %></td><td><a class="btn-mini" href="/developer/tickets/<%= t._id %>">Open</a></td></tr><% }) %></tbody></table></div></section>

@@ -1,0 +1,30 @@
+<section class="page-head"><h1>Developer Management</h1><p>Invite developers, let them set a password, and reset access when needed.</p></section>
+<section class="form-panel"><form method="post" action="/admin/developers" class="filter-bar"><input name="name" placeholder="Name" required><input name="email" type="email" placeholder="Email" required><input name="phone" placeholder="Phone"><input name="department" placeholder="Department"><button class="btn-primary">Send Invite</button></form></section>
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Status</th><th>Reset Password</th><th>Actions</th></tr></thead><tbody><% users.forEach(u => { const state = u.isBlocked ? 'Blocked' : u.isActive ? 'Active' : u.inviteExpires ? 'Invited' : 'Disabled'; %><tr><td><%= u.name %></td><td><%= u.email %></td><td><%= u.department || '-' %></td><td><span class="state-pill <%= state.toLowerCase() %>"><%= state %></span></td><td><form method="post" action="/admin/developers/<%= u._id %>/password" class="inline-form"><input name="password" type="password" placeholder="New password"><button class="btn-mini">Reset</button></form></td><td><div class="action-row"><form method="post" action="/admin/developers/<%= u._id %>/reinvite"><button class="btn-mini">Reinvite</button></form><form method="post" action="/admin/developers/<%= u._id %>/state"><input type="hidden" name="action" value="<%= u.isActive ? 'disable' : 'enable' %>"><button class="btn-mini"><%= u.isActive ? 'Disable' : 'Enable' %></button></form><form method="post" action="/admin/developers/<%= u._id %>/state"><input type="hidden" name="action" value="<%= u.isBlocked ? 'unblock' : 'block' %>"><button class="btn-mini danger"><%= u.isBlocked ? 'Unblock' : 'Block' %></button></form></div></td></tr><% }) %></tbody></table></div>
+<div class="developer-card-list">
+  <% users.forEach(u => { const state = u.isBlocked ? 'Blocked' : u.isActive ? 'Active' : u.inviteExpires ? 'Invited' : 'Disabled'; %>
+    <article class="developer-mobile-card">
+      <header>
+        <div>
+          <h3><%= u.name %></h3>
+          <span><%= u.email %></span>
+        </div>
+        <b class="state-pill <%= state.toLowerCase() %>"><%= state %></b>
+      </header>
+      <div class="mobile-meta">
+        <span>Department <b><%= u.department || '-' %></b></span>
+        <span>Phone <b><%= u.phone || '-' %></b></span>
+      </div>
+      <form method="post" action="/admin/developers/<%= u._id %>/password" class="mobile-reset-form">
+        <input name="password" type="password" placeholder="New password">
+        <button class="btn-mini">Reset</button>
+      </form>
+      <div class="mobile-action-row">
+        <form method="post" action="/admin/developers/<%= u._id %>/reinvite"><button class="btn-mini">Reinvite</button></form>
+        <form method="post" action="/admin/developers/<%= u._id %>/state"><input type="hidden" name="action" value="<%= u.isActive ? 'disable' : 'enable' %>"><button class="btn-mini"><%= u.isActive ? 'Disable' : 'Enable' %></button></form>
+        <form method="post" action="/admin/developers/<%= u._id %>/state"><input type="hidden" name="action" value="<%= u.isBlocked ? 'unblock' : 'block' %>"><button class="btn-mini danger"><%= u.isBlocked ? 'Unblock' : 'Block' %></button></form>
+      </div>
+    </article>
+  <% }) %>
+</div>
+<%- include('../partials/pagination', { result, query }) %>

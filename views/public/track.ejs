@@ -1,0 +1,21 @@
+<section class="form-panel">
+  <nav class="breadcrumb-bar"><a href="/">Home</a><span>/</span><b>Track Ticket</b></nav>
+  <h1>Track Ticket</h1>
+  <form class="filter-bar" method="get" action="/track">
+    <input name="ticketId" placeholder="Ticket ID" value="<%= query.ticketId || '' %>">
+    <input name="email" placeholder="Email" value="<%= query.email || '' %>">
+    <button class="btn-primary">Search</button>
+  </form>
+</section>
+<% if (ticket) { %>
+  <section class="record-card">
+    <div class="record-head"><h2><%= ticket.ticketId %> - <%= ticket.title %></h2><a class="btn-mini" href="/tickets/<%= ticket.ticketId %>/print">Print</a></div>
+    <div class="detail-grid"><span>Status</span><b><%= ticket.status %></b><span>Platform</span><b><%= ticket.platform %></b><span>User Type</span><b><%= ticket.complainantType === 'sgx_member' ? 'SGX Member' : 'Public' %></b><span>Assigned Developer</span><b><%= ticket.assignedTo?.name || 'Pending admin review' %></b><span>Created</span><b><%= ticket.createdAt.toLocaleString() %></b></div>
+    <p><%= ticket.description %></p>
+    <%- include('../partials/attachment-gallery', { ticket }) %>
+    <% if (['Resolved','Closed'].includes(ticket.status)) { %>
+      <form method="post" action="/tickets/<%= ticket.ticketId %>/reopen" class="filter-bar"><input type="hidden" name="email" value="<%= ticket.email %>"><input name="remarks" placeholder="Reason to reopen"><button class="btn-secondary">Reopen</button></form>
+    <% } %>
+  </section>
+  <section class="record-card"><h2>Timeline</h2><%- include('../partials/timeline', { activities }) %></section>
+<% } else if (query.ticketId) { %><p class="muted">No ticket found for the provided ticket ID and email.</p><% } %>

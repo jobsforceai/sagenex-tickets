@@ -1,0 +1,11 @@
+<section class="page-head"><h1>Ticket List</h1><a class="btn-mini" href="/admin/tickets/export">Export CSV</a></section>
+<form class="filter-bar" method="get">
+  <input name="q" placeholder="Search" value="<%= query.q || '' %>">
+  <select name="status"><option value="">All Status</option><% ['Pending','Under Review','Escalated','Assigned','In Progress','Pending Approval','Resolved','Closed','Reopened'].forEach(s => { %><option <%= query.status===s?'selected':'' %>><%= s %></option><% }) %></select>
+  <select name="priority"><option value="">All Priority</option><% ['Low','Medium','High','Critical'].forEach(p => { %><option <%= query.priority===p?'selected':'' %>><%= p %></option><% }) %></select>
+  <select name="platform"><option value="">All Platforms</option><% platforms.forEach(p => { %><option value="<%= p.key %>" <%= query.platform===p.key?'selected':'' %>><%= p.label %></option><% }) %></select>
+  <select name="complainantType"><option value="">All Users</option><option value="sgx_member" <%= query.complainantType==='sgx_member'?'selected':'' %>>SGX Members</option><option value="public" <%= query.complainantType==='public'?'selected':'' %>>Public</option></select>
+  <select name="assignedTo"><option value="">Any Developer</option><% developers.forEach(d => { %><option value="<%= d._id %>" <%= query.assignedTo==d._id?'selected':'' %>><%= d.name %></option><% }) %></select>
+  <button class="btn-primary">Filter</button>
+</form>
+<%- include('../partials/ticket-table', { result, query }) %>

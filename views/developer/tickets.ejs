@@ -1,0 +1,3 @@
+<section class="page-head"><h1>Assigned Tickets</h1></section>
+<form class="filter-bar" method="get"><input name="q" placeholder="Search" value="<%= query.q || '' %>"><select name="status"><option value="">All Status</option><% ['Assigned','In Progress','Pending Approval','Resolved','Reopened'].forEach(s => { %><option <%= query.status===s?'selected':'' %>><%= s %></option><% }) %></select><button class="btn-primary">Filter</button></form>
+<%- include('../partials/ticket-table', { result, query }) %>

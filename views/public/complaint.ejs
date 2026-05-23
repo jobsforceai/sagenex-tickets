@@ -1,0 +1,105 @@
+<section class="complaint-hero">
+  <nav class="breadcrumb-bar span-all"><a href="/">Home</a><span>/</span><b>Raise Complaint</b></nav>
+  <div>
+    <span class="eyebrow">Sagenex support desk</span>
+    <h1>Raise Platform Complaint</h1>
+    <p>Submit a support request for any SGX platform. Verified members can attach their SGX profile, while guests can continue with contact details.</p>
+  </div>
+  <div class="complaint-steps" aria-label="Complaint steps">
+    <span>1. Platform</span>
+    <span>2. Verify</span>
+    <span>3. Details</span>
+    <span>4. Upload</span>
+  </div>
+</section>
+
+<section class="form-panel complaint-panel">
+  <div class="complaint-panel-head">
+    <div>
+      <h2>Complaint Information</h2>
+      <p>Share accurate contact details and a clear description so the support team can resolve this faster.</p>
+    </div>
+    <span class="secure-chip">Secure submission</span>
+  </div>
+  <form method="post" action="/complaint" enctype="multipart/form-data" class="grid-form upload-progress-form" id="complaintForm">
+    <input type="hidden" name="complainantType" id="complainantType" value="public">
+    <input type="hidden" name="memberConfirmed" id="memberConfirmed" value="no">
+    <input type="hidden" id="complaintModeSelected" value="no">
+    <label class="hp-field">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+    <div class="form-section span-2">
+      <div class="section-label"><b>Account</b><span>Select the platform and verify membership when available.</span></div>
+      <div class="section-grid">
+        <label>Platform<select name="platform" required><% platforms.forEach(platform => { %><option value="<%= platform.key %>"><%= platform.label %></option><% }) %></select></label>
+        <label class="sgx-flow-field">SGX User ID<input name="externalUserId" id="externalUserId" placeholder="Example: U015" autocomplete="off"></label>
+      </div>
+    </div>
+    <div class="span-2 verify-row sgx-flow-field">
+      <button type="button" class="btn-secondary btn-loading" id="verifySgxUser"><span class="btn-label">Verify SGX User</span></button>
+      <button type="button" class="btn-mini" id="continueGuest">Continue as Guest</button>
+      <span class="muted" id="verifyMessage">Verify SGX ID, or continue as guest with email and phone.</span>
+    </div>
+    <div class="span-2 verified-card" id="verifiedCard" hidden>
+      <div><b id="verifiedName"></b> <span id="verifiedMeta"></span></div>
+      <div class="muted" id="verifiedContact"></div>
+      <button type="button" class="btn-primary" id="confirmMember">Use This Verified Member</button>
+      <button type="button" class="btn-mini" id="switchGuest">Use Guest Details Instead</button>
+    </div>
+    <div class="form-section span-2 guest-section">
+      <div class="section-label"><b>Guest contact</b><span>Required only when you continue without SGX verification.</span></div>
+      <div class="section-grid guest-grid">
+        <label class="guest-field">Name<input name="name" id="guestName" autocomplete="name"></label>
+        <label class="guest-field">Email<input name="email" id="guestEmail" type="email" autocomplete="email"></label>
+        <label class="guest-field">Phone<input name="phone" id="guestPhone" autocomplete="tel"></label>
+      </div>
+    </div>
+    <div class="form-section span-2">
+      <div class="section-label"><b>Issue details</b><span>Keep the title short and include references in the description.</span></div>
+      <div class="section-grid one-column">
+        <label>Complaint Title<input name="title" maxlength="120" required placeholder="Short issue summary"></label>
+        <label>Description<textarea name="description" rows="5" minlength="10" required placeholder="Write exact issue, transaction/reference ID if any, and expected resolution."></textarea></label>
+      </div>
+    </div>
+    <div class="span-2 upload-box" id="uploadDropzone">
+      <label>Images / Attachments <span class="label-note">max 3, 5 MB each</span><input name="attachments" id="attachments" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx"></label>
+      <input id="addMoreAttachments" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx" hidden>
+      <div class="upload-help">Tap to choose files or drag images here. JPG, PNG, WEBP, PDF, DOC, XLS supported.</div>
+      <div class="upload-actions">
+        <button type="button" class="btn-mini add-more-btn" id="addMoreButton" hidden>+ Add more</button>
+        <button type="button" class="btn-mini upload-clear" id="clearAttachments" hidden>Remove Attachments</button>
+      </div>
+      <div class="preview-grid" id="previewGrid" aria-live="polite"></div>
+    </div>
+    <div class="span-2 progress-panel" id="progressPanel" hidden>
+      <div class="progress-head"><b id="progressText">Uploading...</b><span id="progressPercent">0%</span></div>
+      <div class="progress-track"><div id="progressBar"></div></div>
+    </div>
+    <div class="span-2 submit-row">
+      <button class="btn-primary btn-loading" id="submitComplaint"><span class="btn-label">Submit Ticket</span></button>
+      <span class="muted" id="submitMessage">You will receive a ticket ID after submission.</span>
+    </div>
+  </form>
+  <div class="form-loader" id="complaintLoader" hidden>
+    <div class="loader-card">
+      <span class="loader-spinner" aria-hidden="true"></span>
+      <b id="loaderTitle">Submitting complaint</b>
+      <span id="loaderText">Please keep this page open while we create your ticket.</span>
+    </div>
+  </div>
+</section>
+
+<div class="choice-modal" id="complaintChoiceModal" role="dialog" aria-modal="true" aria-labelledby="choiceTitle">
+  <div class="choice-dialog">
+    <h2 id="choiceTitle">Raise complaint as</h2>
+    <p>Select how you want to continue. SGX users will verify their user ID before submitting.</p>
+    <div class="choice-actions">
+      <button type="button" class="choice-card" id="chooseSgxUser">
+        <b>SGX User</b>
+        <span>Verify SGX User ID and use registered profile.</span>
+      </button>
+      <button type="button" class="choice-card" id="chooseGuest">
+        <b>Guest</b>
+        <span>Continue with name, email, and phone number.</span>
+      </button>
+    </div>
+  </div>
+</div>

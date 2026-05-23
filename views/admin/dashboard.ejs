@@ -1,0 +1,10 @@
+<section class="page-head"><h1>Admin Dashboard</h1><p>Main admin queue and complaint control desk.</p></section>
+<div class="stats-row">
+  <div>Total<b><%= stats.total %></b></div><div>Pending<b><%= stats.pending %></b></div><div>Assigned<b><%= stats.assigned %></b></div><div>Resolved<b><%= stats.resolved %></b></div><div>Critical<b><%= stats.critical %></b></div>
+</div>
+<div class="chart-grid">
+  <%- include('../partials/pie-chart', { title: 'Tickets by Status', data: charts.byStatus }) %>
+  <%- include('../partials/pie-chart', { title: 'Tickets by Priority', data: charts.byPriority }) %>
+  <%- include('../partials/pie-chart', { title: 'Tickets by Platform', data: charts.byPlatform }) %>
+</div>
+<section class="record-card"><h2>Recent Tickets</h2><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Title</th><th>Status</th><th>Assigned</th><th></th></tr></thead><tbody><% recent.forEach(t => { %><tr><td class="mono"><%= t.ticketId %></td><td><%= t.title %></td><td><%= t.status %></td><td><%= t.assignedTo?.name || '-' %></td><td><a class="btn-mini" href="/admin/tickets/<%= t._id %>">Open</a></td></tr><% }) %></tbody></table></div></section>

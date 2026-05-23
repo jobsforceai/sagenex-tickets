@@ -1,0 +1,46 @@
+<div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>Ticket ID</th><th>Date</th><th>Platform</th><th>Type</th><th>Complainant</th><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned</th><th></th></tr></thead>
+    <tbody>
+      <% result.docs.forEach(function(ticket){ %>
+        <tr>
+          <td class="mono"><%= ticket.ticketId %></td>
+          <td><%= new Date(ticket.createdAt).toLocaleDateString() %></td>
+          <td><%= ticket.platform %></td>
+          <td><%= ticket.complainantType === 'sgx_member' ? 'SGX' : 'Public' %></td>
+          <td><%= ticket.name %><br><span class="muted"><%= ticket.email %></span></td>
+          <td><%= ticket.title %></td>
+          <td><%= ticket.category %></td>
+          <td><span class="badge-lite <%= ticket.priority.toLowerCase() %>"><%= ticket.priority %></span></td>
+          <td><%= ticket.status %></td>
+          <td><%= ticket.assignedTo?.name || '-' %></td>
+          <td><a class="btn-mini" href="<%= currentUser.role === 'admin' ? '/admin/tickets/' + ticket._id : '/developer/tickets/' + ticket._id %>">Open</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<div class="ticket-card-list">
+  <% result.docs.forEach(function(ticket){ %>
+    <article class="ticket-mobile-card">
+      <header>
+        <div>
+          <span class="mono"><%= ticket.ticketId %></span>
+          <h3><%= ticket.title %></h3>
+        </div>
+        <a class="btn-mini" href="<%= currentUser.role === 'admin' ? '/admin/tickets/' + ticket._id : '/developer/tickets/' + ticket._id %>">Open</a>
+      </header>
+      <div class="mobile-meta">
+        <span>Status <b><%= ticket.status %></b></span>
+        <span>Priority <b><%= ticket.priority %></b></span>
+        <span>Platform <b><%= ticket.platform %></b></span>
+        <span>Assigned <b><%= ticket.assignedTo?.name || '-' %></b></span>
+      </div>
+      <footer>
+        <span><%= ticket.name %></span>
+        <span><%= new Date(ticket.createdAt).toLocaleDateString() %></span>
+      </footer>
+    </article>
+  <% }) %>
+</div>
+<%- include('./pagination', { result, query: query || {} }) %>

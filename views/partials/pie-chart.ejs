@@ -1,0 +1,17 @@
+<% 
+  const rows = data || [];
+  const total = rows.reduce((sum, row) => sum + (row.count || 0), 0);
+  const chartId = `chart-${Math.random().toString(36).slice(2)}`;
+  const labels = rows.map((row) => row._id || 'Unknown');
+  const values = rows.map((row) => row.count || 0);
+%>
+<section class="chart-card pie-card">
+  <h2><%= title %></h2>
+  <% if (!rows.length || !total) { %>
+    <div class="empty-state">No data available.</div>
+  <% } else { %>
+    <div class="chartjs-wrap">
+      <canvas id="<%= chartId %>" data-chart-labels='<%- JSON.stringify(labels) %>' data-chart-values='<%- JSON.stringify(values) %>' data-chart-total="<%= total %>"></canvas>
+    </div>
+  <% } %>
+</section>

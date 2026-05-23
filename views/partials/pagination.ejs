@@ -1,0 +1,25 @@
+<% 
+  const totalPages = result.totalPages || 1;
+  const currentPage = result.page || 1;
+  const makePageUrl = (page) => {
+    const params = new URLSearchParams(query || {});
+    params.set('page', page);
+    return `?${params.toString()}`;
+  };
+  const startPage = Math.max(1, currentPage - 2);
+  const endPage = Math.min(totalPages, currentPage + 2);
+%>
+<div class="pagination-bar">
+  <div class="pagination-summary">Page <b><%= currentPage %></b> of <b><%= totalPages %></b> · <%= result.totalDocs || 0 %> records</div>
+  <% if (totalPages > 1) { %>
+    <nav class="pagination-controls" aria-label="Pagination">
+      <a class="<%= currentPage <= 1 ? 'disabled' : '' %>" href="<%= currentPage <= 1 ? '#' : makePageUrl(1) %>">First</a>
+      <a class="<%= currentPage <= 1 ? 'disabled' : '' %>" href="<%= currentPage <= 1 ? '#' : makePageUrl(currentPage - 1) %>">Prev</a>
+      <% for (let page = startPage; page <= endPage; page++) { %>
+        <a class="<%= page === currentPage ? 'active' : '' %>" href="<%= makePageUrl(page) %>"><%= page %></a>
+      <% } %>
+      <a class="<%= currentPage >= totalPages ? 'disabled' : '' %>" href="<%= currentPage >= totalPages ? '#' : makePageUrl(currentPage + 1) %>">Next</a>
+      <a class="<%= currentPage >= totalPages ? 'disabled' : '' %>" href="<%= currentPage >= totalPages ? '#' : makePageUrl(totalPages) %>">Last</a>
+    </nav>
+  <% } %>
+</div>

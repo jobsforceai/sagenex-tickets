@@ -1,0 +1,12 @@
+<aside class="sidebar">
+  <% if (currentUser.role === 'admin') { %>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/tickets">Tickets</a>
+    <a href="/admin/developers">Developers</a>
+    <a href="/admin/reports">Reports</a>
+  <% } %>
+  <% if (currentUser.role === 'developer') { %>
+    <a href="/developer/dashboard">Dashboard</a>
+    <a href="/developer/tickets">Assigned Tickets</a>
+  <% } %>
+</aside>
