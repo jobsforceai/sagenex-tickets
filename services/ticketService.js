@@ -38,6 +38,10 @@ function mapAttachment(file, actor, source = 'complainant') {
   };
 }
 
+function firstValue(...values) {
+  return values.find((value) => typeof value === 'string' && value.trim())?.trim();
+}
+
 export async function createTicket(payload, files = [], actor) {
   let ticketId = generateTicketId();
   while (await Ticket.exists({ ticketId })) ticketId = generateTicketId();
@@ -46,19 +50,28 @@ export async function createTicket(payload, files = [], actor) {
   const attachments = fileList.map((file) => mapAttachment(file, actor, 'complainant'));
   const complainantType = payload.complainantType === 'sgx_member' && payload.memberConfirmed === 'yes' ? 'sgx_member' : 'public';
   const externalUser = complainantType === 'sgx_member' ? await validateExternalUser(payload.externalUserId) : null;
+  const name = firstValue(externalUser?.fullName, externalUser?.name, payload.name);
+  const email = firstValue(externalUser?.email, externalUser?.emailAddress, payload.email);
+  const phone = firstValue(externalUser?.phone, externalUser?.mobile, externalUser?.phoneNumber, payload.phone);
+
+  if (!name || !email || !phone) {
+    const error = new Error('Verified SGX profile is missing contact details. Please continue as guest and enter name, email, and phone.');
+    error.statusCode = 400;
+    throw error;
+  }
 
   const ticket = await Ticket.create({
     ticketId,
-    name: externalUser?.fullName || payload.name,
-    email: externalUser?.email || payload.email,
-    phone: externalUser?.phone || payload.phone,
+    name,
+    email,
+    phone,
     complainantType,
     externalUserId: externalUser?.userId || payload.externalUserId,
     externalUserSnapshot: externalUser
       ? {
-          fullName: externalUser.fullName,
-          email: externalUser.email,
-          phone: externalUser.phone,
+          fullName: name,
+          email,
+          phone,
           country: externalUser.country,
           rank: externalUser.rank,
           sponsorId: externalUser.sponsorId,

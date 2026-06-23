@@ -49,6 +49,83 @@ function setComplaintLoader(isVisible, title, text) {
   loader.hidden = !isVisible;
 }
 
+function setMessageState(element, message, state = 'info') {
+  if (!element) return;
+  element.textContent = message;
+  element.classList.remove('message-error', 'message-success', 'message-info');
+  element.classList.add(`message-${state}`);
+}
+
+function fillGuestContactFromUser(user) {
+  const fields = {
+    guestName: user.fullName || user.name || '',
+    guestEmail: user.email || user.emailAddress || '',
+    guestPhone: user.phone || user.mobile || user.phoneNumber || ''
+  };
+  Object.entries(fields).forEach(([id, value]) => {
+    const input = document.getElementById(id);
+    if (input) input.value = value;
+  });
+}
+
+function drawCaptcha(question) {
+  const canvas = document.getElementById('captchaCanvas');
+  if (!canvas || !question) return;
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(0, 0, width, height);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+
+  for (let i = 0; i < 16; i += 1) {
+    ctx.fillStyle = `rgba(${80 + i * 6}, ${105 + i * 3}, ${130 + i * 2}, .18)`;
+    ctx.beginPath();
+    ctx.arc(Math.random() * width, Math.random() * height, 1.2 + Math.random() * 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.save();
+  ctx.translate(18, 29);
+  ctx.rotate((Math.random() - 0.5) * 0.08);
+  ctx.font = '700 22px Arial, Helvetica, sans-serif';
+  ctx.fillStyle = '#17202a';
+  ctx.fillText(`${question} = ?`, 0, 0);
+  ctx.restore();
+
+  ctx.strokeStyle = 'rgba(15, 118, 110, .45)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(8, 31 + Math.random() * 3);
+  ctx.bezierCurveTo(42, 16, 92, 42, 142, 18);
+  ctx.stroke();
+}
+
+function updateCaptchaFromPayload(payload) {
+  if (!payload?.captcha?.question) return;
+  const canvas = document.getElementById('captchaCanvas');
+  const answer = document.getElementById('captchaAnswer');
+  if (canvas) {
+    canvas.dataset.question = payload.captcha.question;
+    drawCaptcha(payload.captcha.question);
+  }
+  if (answer) {
+    answer.value = '';
+    answer.focus();
+  }
+}
+
+async function readJsonResponse(response) {
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { message: text || 'Request failed. Please try again.' };
+  }
+}
+
 async function verifySgxUser() {
   const input = document.getElementById('externalUserId');
   const message = document.getElementById('verifyMessage');
@@ -57,11 +134,11 @@ async function verifySgxUser() {
   if (!input || !message || !card) return;
   const externalUserId = input.value.trim();
   if (!externalUserId) {
-    message.textContent = 'Please enter SGX User ID first.';
+    setMessageState(message, 'Please enter SGX User ID first.', 'error');
     return;
   }
   const verifyButton = document.getElementById('verifySgxUser');
-  message.textContent = 'Verifying SGX member...';
+  setMessageState(message, 'Verifying SGX member...', 'info');
   card.hidden = true;
   card.classList.remove('is-selected');
   if (confirmButton) {
@@ -76,15 +153,16 @@ async function verifySgxUser() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ externalUserId })
     });
-    const payload = await response.json();
+    const payload = await readJsonResponse(response);
     if (!response.ok || !payload.success) throw new Error(payload.message || 'Verification failed');
     document.getElementById('verifiedName').textContent = payload.data.fullName || payload.data.userId;
     document.getElementById('verifiedMeta').textContent = `${payload.data.userId} | ${payload.data.rank || 'Member'} | ${payload.data.status}`;
     document.getElementById('verifiedContact').textContent = `${payload.data.email || ''} ${payload.data.phone || ''}`;
-    message.textContent = 'Member found. Please confirm before submitting.';
+    fillGuestContactFromUser(payload.data);
+    setMessageState(message, 'Member found. Contact details filled automatically. Please confirm before submitting.', 'success');
     card.hidden = false;
   } catch (error) {
-    message.textContent = `${error.message}. Continue as guest and enter email/phone.`;
+    setMessageState(message, `${error.message}. Continue as guest and enter email/phone.`, 'error');
     setGuestMode(true);
   } finally {
     setButtonLoading(verifyButton, false);
@@ -100,7 +178,7 @@ document.getElementById('confirmMember')?.addEventListener('click', () => {
     button.textContent = 'Verified Member Selected';
     button.disabled = true;
   }
-  setSubmitMessage('Verified SGX profile selected.');
+  setSubmitMessage('Verified SGX profile selected.', 'success');
 });
 
 function chooseComplaintMode(mode) {
@@ -119,7 +197,7 @@ function chooseComplaintMode(mode) {
     confirmButton.disabled = false;
   }
   setGuestMode(mode === 'guest');
-  setSubmitMessage(mode === 'guest' ? 'Guest mode selected. Enter contact details.' : 'SGX user mode selected. Verify SGX User ID before submitting.');
+  setSubmitMessage(mode === 'guest' ? 'Guest mode selected. Enter contact details.' : 'SGX user mode selected. Verify SGX User ID before submitting.', 'info');
 }
 
 document.getElementById('continueGuest')?.addEventListener('click', () => chooseComplaintMode('guest'));
@@ -127,6 +205,8 @@ document.getElementById('switchGuest')?.addEventListener('click', () => chooseCo
 document.getElementById('chooseSgxUser')?.addEventListener('click', () => chooseComplaintMode('sgx'));
 document.getElementById('chooseGuest')?.addEventListener('click', () => chooseComplaintMode('guest'));
 if (document.getElementById('complaintForm')) {
+  const captchaCanvas = document.getElementById('captchaCanvas');
+  if (captchaCanvas?.dataset.question) drawCaptcha(captchaCanvas.dataset.question);
   setGuestMode(true);
   document.querySelectorAll('.guest-field').forEach((field) => {
     field.style.display = 'none';
@@ -150,9 +230,9 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function setSubmitMessage(message) {
+function setSubmitMessage(message, state = 'info') {
   const target = document.getElementById('submitMessage');
-  if (target) target.textContent = message;
+  setMessageState(target, message, state);
 }
 
 function validateFiles(files) {
@@ -179,7 +259,7 @@ function addSelectedFiles(files) {
   });
   const error = validateFiles(next);
   if (error) {
-    setSubmitMessage(error);
+    setSubmitMessage(error, 'error');
     return;
   }
   selectedAttachments = next;
@@ -197,7 +277,7 @@ function renderPreviews() {
     selectedAttachments = [];
     if (clearAttachments) clearAttachments.hidden = true;
     if (addMoreButton) addMoreButton.hidden = true;
-    setSubmitMessage(error);
+    setSubmitMessage(error, 'error');
     return;
   }
   if (clearAttachments) clearAttachments.hidden = files.length === 0;
@@ -222,7 +302,7 @@ function renderPreviews() {
     item.appendChild(meta);
     previewGrid.appendChild(item);
   });
-  if (files.length) setSubmitMessage(`${files.length} file${files.length > 1 ? 's' : ''} ready for upload.`);
+  if (files.length) setSubmitMessage(`${files.length} file${files.length > 1 ? 's' : ''} ready for upload.`, 'success');
 }
 
 attachmentInput?.addEventListener('change', () => {
@@ -268,19 +348,19 @@ form?.addEventListener('submit', (event) => {
   event.preventDefault();
   const selectedMode = document.getElementById('complaintModeSelected');
   if (selectedMode && selectedMode.value !== 'yes') {
-    setSubmitMessage('Please choose SGX User or Guest first.');
+    setSubmitMessage('Please choose SGX User or Guest first.', 'error');
     document.getElementById('complaintChoiceModal')?.removeAttribute('hidden');
     return;
   }
   const type = document.getElementById('complainantType');
   const confirmed = document.getElementById('memberConfirmed');
   if (type?.value === 'sgx_member' && confirmed?.value !== 'yes') {
-    setSubmitMessage('Please verify and confirm the SGX user profile before submitting.');
+    setSubmitMessage('Please verify and confirm the SGX user profile before submitting.', 'error');
     return;
   }
   const filesError = validateFiles(attachmentInput?.files);
   if (filesError) {
-    setSubmitMessage(filesError);
+    setSubmitMessage(filesError, 'error');
     return;
   }
   if (!form.reportValidity()) return;
@@ -296,7 +376,7 @@ form?.addEventListener('submit', (event) => {
   setButtonLoading(submitButton, true, 'Submitting...');
   if (progressPanel) progressPanel.hidden = false;
   setComplaintLoader(true, 'Submitting complaint', 'Uploading attachments and creating your support ticket.');
-  setSubmitMessage('Uploading complaint. Please keep this page open.');
+  setSubmitMessage('Uploading complaint. Please keep this page open.', 'info');
 
   xhr.upload.addEventListener('progress', (progress) => {
     if (!progress.lengthComputable) return;
@@ -308,23 +388,25 @@ form?.addEventListener('submit', (event) => {
 
   xhr.addEventListener('load', () => {
     try {
-      const payload = JSON.parse(xhr.responseText);
+      const payload = JSON.parse(xhr.responseText || '{}');
       if (xhr.status >= 200 && xhr.status < 300 && payload.redirectUrl) {
-        setSubmitMessage(`Ticket ${payload.ticketId} created. Redirecting...`);
+        setSubmitMessage(`Ticket ${payload.ticketId} created. Redirecting...`, 'success');
         setComplaintLoader(true, 'Ticket created', 'Redirecting you to ticket tracking.');
         window.location.href = payload.redirectUrl;
         return;
       }
+      updateCaptchaFromPayload(payload);
       throw new Error(payload.message || 'Submission failed.');
     } catch (error) {
-      setSubmitMessage(error.message);
+      const fallbackMessage = xhr.responseText && !xhr.responseText.trim().startsWith('{') ? xhr.responseText : error.message;
+      setSubmitMessage(fallbackMessage, 'error');
       setButtonLoading(submitButton, false);
       setComplaintLoader(false);
     }
   });
 
   xhr.addEventListener('error', () => {
-    setSubmitMessage('Network error during upload. Please try again.');
+    setSubmitMessage('Network error during upload. Please try again.', 'error');
     setButtonLoading(submitButton, false);
     setComplaintLoader(false);
   });

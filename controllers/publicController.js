@@ -4,9 +4,10 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { createTicket, updateTicketStatus } from '../services/ticketService.js';
 import { validateExternalUser } from '../services/externalUserService.js';
 import { platforms } from '../utils/platforms.js';
+import { ensureComplaintCaptcha } from '../middleware/captchaMiddleware.js';
 
 export const home = (req, res) => res.render('public/home', { title: 'Sagenex Ticketing System' });
-export const showComplaint = (req, res) => res.render('public/complaint', { title: 'Raise Complaint', platforms });
+export const showComplaint = (req, res) => res.render('public/complaint', { title: 'Raise Complaint', platforms, captcha: ensureComplaintCaptcha(req) });
 
 export const submitComplaint = asyncHandler(async (req, res) => {
   const ticket = await createTicket(req.body, req.files, req.user);

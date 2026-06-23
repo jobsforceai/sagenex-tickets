@@ -3,18 +3,20 @@ import { body } from 'express-validator';
 import { home, printTicket, reopenTicket, showComplaint, submitComplaint, trackTicket, verifySgxUser } from '../controllers/publicController.js';
 import { upload } from '../middleware/uploadMiddleware.js';
 import { validate } from '../middleware/validationMiddleware.js';
-import { complaintLimiter, trackingLimiter } from '../middleware/rateLimiters.js';
+import { validateComplaintCaptcha } from '../middleware/captchaMiddleware.js';
+import { complaintSubmitLimiter, complaintVerifyLimiter, complaintViewLimiter, trackingLimiter } from '../middleware/rateLimiters.js';
 import { platformKeys } from '../utils/platforms.js';
 
 const router = Router();
 
 router.get('/', home);
-router.get('/complaint', complaintLimiter, showComplaint);
-router.post('/complaint/verify-user', complaintLimiter, [body('externalUserId').trim().notEmpty().withMessage('SGX user ID is required')], verifySgxUser);
+router.get('/complaint', complaintViewLimiter, showComplaint);
+router.post('/complaint/verify-user', complaintVerifyLimiter, [body('externalUserId').trim().notEmpty().withMessage('SGX user ID is required')], verifySgxUser);
 router.post(
   '/complaint',
-  complaintLimiter,
+  complaintSubmitLimiter,
   upload.array('attachments', 3),
+  validateComplaintCaptcha,
   [
     body('complainantType').isIn(['sgx_member', 'public']).withMessage('Select a valid user type'),
     body('memberConfirmed').if(body('complainantType').equals('sgx_member')).equals('yes').withMessage('Please verify and confirm the SGX member profile'),

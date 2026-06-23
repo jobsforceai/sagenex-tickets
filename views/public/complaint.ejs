@@ -19,7 +19,10 @@
       <h2>Complaint Information</h2>
       <p>Share accurate contact details and a clear description so the support team can resolve this faster.</p>
     </div>
-    <span class="secure-chip">Secure submission</span>
+    <div class="complaint-assist">
+      <span class="secure-chip">Secure submission</span>
+      <span>Limits and human check protect the support queue.</span>
+    </div>
   </div>
   <form method="post" action="/complaint" enctype="multipart/form-data" class="grid-form upload-progress-form" id="complaintForm">
     <input type="hidden" name="complainantType" id="complainantType" value="public">
@@ -58,6 +61,10 @@
         <label>Complaint Title<input name="title" maxlength="120" required placeholder="Short issue summary"></label>
         <label>Description<textarea name="description" rows="5" minlength="10" required placeholder="Write exact issue, transaction/reference ID if any, and expected resolution."></textarea></label>
       </div>
+      <div class="complaint-hints" aria-label="Helpful complaint details">
+        <span>Include platform name, transaction ID, and date/time if available.</span>
+        <span>Avoid passwords, OTPs, seed phrases, or private keys.</span>
+      </div>
     </div>
     <div class="span-2 upload-box" id="uploadDropzone">
       <label>Images / Attachments <span class="label-note">max 3, 5 MB each</span><input name="attachments" id="attachments" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx"></label>
@@ -68,6 +75,16 @@
         <button type="button" class="btn-mini upload-clear" id="clearAttachments" hidden>Remove Attachments</button>
       </div>
       <div class="preview-grid" id="previewGrid" aria-live="polite"></div>
+    </div>
+    <div class="form-section span-2 captcha-section">
+      <div class="section-label"><b>Human check</b><span>Required before creating the ticket.</span></div>
+      <div class="captcha-row">
+        <label>Solve this question
+          <canvas id="captchaCanvas" class="captcha-canvas" width="150" height="46" data-question="<%= captcha.question %>" aria-label="Human check question"></canvas>
+          <input name="captchaAnswer" id="captchaAnswer" inputmode="numeric" autocomplete="off" required placeholder="Answer">
+        </label>
+        <span class="muted">This helps prevent automated spam and protects rate limits for real users.</span>
+      </div>
     </div>
     <div class="span-2 progress-panel" id="progressPanel" hidden>
       <div class="progress-head"><b id="progressText">Uploading...</b><span id="progressPercent">0%</span></div>
@@ -93,12 +110,22 @@
     <p>Select how you want to continue. SGX users will verify their user ID before submitting.</p>
     <div class="choice-actions">
       <button type="button" class="choice-card" id="chooseSgxUser">
-        <b>SGX User</b>
-        <span>Verify SGX User ID and use registered profile.</span>
+        <span class="choice-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M12 3.5 19 6.2v5.2c0 4.4-2.7 7.4-7 9.1-4.3-1.7-7-4.7-7-9.1V6.2l7-2.7Z"></path>
+            <path d="M9 12.1 11 14l4.2-4.4"></path>
+          </svg>
+        </span>
+        <span class="choice-copy"><b>SGX User</b><span>Verify SGX User ID and use registered profile.</span></span>
       </button>
       <button type="button" class="choice-card" id="chooseGuest">
-        <b>Guest</b>
-        <span>Continue with name, email, and phone number.</span>
+        <span class="choice-icon guest" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M12 12.2a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+            <path d="M4.8 20c.9-3.5 3.4-5.4 7.2-5.4s6.3 1.9 7.2 5.4"></path>
+          </svg>
+        </span>
+        <span class="choice-copy"><b>Guest</b><span>Continue with name, email, and phone number.</span></span>
       </button>
     </div>
   </div>
