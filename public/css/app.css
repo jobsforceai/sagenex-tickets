@@ -1028,7 +1028,7 @@ label input, label select, label textarea { margin-top: 3px; font-weight: 400; }
 }
 .captcha-row {
   display: grid;
-  grid-template-columns: minmax(180px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(180px, 280px);
   gap: 12px;
   align-items: end;
 }

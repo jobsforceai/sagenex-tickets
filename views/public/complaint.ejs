@@ -83,7 +83,6 @@
           <canvas id="captchaCanvas" class="captcha-canvas" width="150" height="46" data-question="<%= captcha.question %>" aria-label="Human check question"></canvas>
           <input name="captchaAnswer" id="captchaAnswer" inputmode="numeric" autocomplete="off" required placeholder="Answer">
         </label>
-        <span class="muted">This helps prevent automated spam and protects rate limits for real users.</span>
       </div>
     </div>
     <div class="span-2 progress-panel" id="progressPanel" hidden>
@@ -106,8 +105,8 @@
 
 <div class="choice-modal" id="complaintChoiceModal" role="dialog" aria-modal="true" aria-labelledby="choiceTitle">
   <div class="choice-dialog">
-    <h2 id="choiceTitle">Raise complaint as</h2>
-    <p>Select how you want to continue. SGX users will verify their user ID before submitting.</p>
+    <h2 id="choiceTitle">Choose complaint type</h2>
+    <p>Please select one option to continue.</p>
     <div class="choice-actions">
       <button type="button" class="choice-card" id="chooseSgxUser">
         <span class="choice-icon" aria-hidden="true">
@@ -116,7 +115,7 @@
             <path d="M9 12.1 11 14l4.2-4.4"></path>
           </svg>
         </span>
-        <span class="choice-copy"><b>SGX User</b><span>Verify SGX User ID and use registered profile.</span></span>
+        <span class="choice-copy"><b>SGX User</b><span>Verify your SGX User ID.</span></span>
       </button>
       <button type="button" class="choice-card" id="chooseGuest">
         <span class="choice-icon guest" aria-hidden="true">
@@ -125,7 +124,7 @@
             <path d="M4.8 20c.9-3.5 3.4-5.4 7.2-5.4s6.3 1.9 7.2 5.4"></path>
           </svg>
         </span>
-        <span class="choice-copy"><b>Guest</b><span>Continue with name, email, and phone number.</span></span>
+        <span class="choice-copy"><b>Guest</b><span>Continue without SGX User ID.</span></span>
       </button>
     </div>
   </div>
